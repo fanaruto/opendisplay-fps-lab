@@ -1,0 +1,211 @@
+{
+  "date": "2026-11-01",
+  "mac": "M1 Pro",
+  "transport": "USB",
+  "measurement": "receiver packet statistics, not on-glass presentation",
+  "runs": [
+    {
+      "target_fps": 60,
+      "quality": "best",
+      "encoded_size": [
+        1668,
+        2388
+      ],
+      "samples": [
+        {
+          "time": "11:04:44.793",
+          "fps": 59,
+          "capFps": 59,
+          "codec": "HEVC",
+          "e2e50": 22,
+          "e2e95": 30,
+          "enc50": 16,
+          "stalls": 0
+        },
+        {
+          "time": "11:04:49.832",
+          "fps": 60,
+          "capFps": 59,
+          "codec": "HEVC",
+          "e2e50": 23,
+          "e2e95": 31,
+          "enc50": 17,
+          "stalls": 0
+        },
+        {
+          "time": "11:04:54.881",
+          "fps": 58,
+          "capFps": 59,
+          "codec": "HEVC",
+          "e2e50": 19,
+          "e2e95": 25,
+          "enc50": 15,
+          "stalls": 0
+        },
+        {
+          "time": "11:04:59.919",
+          "fps": 59,
+          "capFps": 59,
+          "codec": "HEVC",
+          "e2e50": 19,
+          "e2e95": 26,
+          "enc50": 15,
+          "stalls": 0
+        },
+        {
+          "time": "11:05:04.969",
+          "fps": 59,
+          "capFps": 60,
+          "codec": "HEVC",
+          "e2e50": 19,
+          "e2e95": 26,
+          "enc50": 15,
+          "stalls": 0
+        },
+        {
+          "time": "11:05:09.993",
+          "fps": 59,
+          "capFps": 60,
+          "codec": "HEVC",
+          "e2e50": 21,
+          "e2e95": 30,
+          "enc50": 15,
+          "stalls": 0
+        },
+        {
+          "time": "11:05:15.048",
+          "fps": 59,
+          "capFps": 60,
+          "codec": "HEVC",
+          "e2e50": 20,
+          "e2e95": 28,
+          "enc50": 15,
+          "stalls": 0
+        }
+      ],
+      "median_received_fps": 59
+    },
+    {
+      "target_fps": 90,
+      "quality": "fast",
+      "encoded_size": [
+        834,
+        1194
+      ],
+      "samples": [
+        {
+          "time": "11:04:17.144",
+          "fps": 83,
+          "capFps": 86,
+          "codec": "H.264",
+          "e2e50": 15,
+          "e2e95": 21,
+          "enc50": 11,
+          "stalls": 1
+        },
+        {
+          "time": "11:04:22.179",
+          "fps": 90,
+          "capFps": 89,
+          "codec": "H.264",
+          "e2e50": 17,
+          "e2e95": 23,
+          "enc50": 12,
+          "stalls": 0
+        },
+        {
+          "time": "11:04:27.204",
+          "fps": 89,
+          "capFps": 90,
+          "codec": "H.264",
+          "e2e50": 15,
+          "e2e95": 23,
+          "enc50": 11,
+          "stalls": 0
+        }
+      ],
+      "median_received_fps": 89
+    },
+    {
+      "target_fps": 120,
+      "quality": "fast",
+      "encoded_size": [
+        834,
+        1194
+      ],
+      "samples": [
+        {
+          "time": "11:06:36.262",
+          "fps": 112,
+          "capFps": 0,
+          "codec": "H.264",
+          "e2e50": 15,
+          "e2e95": 22,
+          "enc50": 11,
+          "stalls": 0
+        },
+        {
+          "time": "11:06:41.363",
+          "fps": 119,
+          "capFps": 120,
+          "codec": "H.264",
+          "e2e50": 15,
+          "e2e95": 23,
+          "enc50": 10,
+          "stalls": 0
+        },
+        {
+          "time": "11:06:46.397",
+          "fps": 117,
+          "capFps": 119,
+          "codec": "H.264",
+          "e2e50": 17,
+          "e2e95": 24,
+          "enc50": 12,
+          "stalls": 0
+        },
+        {
+          "time": "11:06:51.423",
+          "fps": 119,
+          "capFps": 118,
+          "codec": "H.264",
+          "e2e50": 17,
+          "e2e95": 26,
+          "enc50": 12,
+          "stalls": 0
+        },
+        {
+          "time": "11:06:56.445",
+          "fps": 120,
+          "capFps": 120,
+          "codec": "H.264",
+          "e2e50": 17,
+          "e2e95": 23,
+          "enc50": 11,
+          "stalls": 0
+        },
+        {
+          "time": "11:07:01.480",
+          "fps": 116,
+          "capFps": 119,
+          "codec": "H.264",
+          "e2e50": 16,
+          "e2e95": 24,
+          "enc50": 11,
+          "stalls": 0
+        },
+        {
+          "time": "11:07:06.505",
+          "fps": 121,
+          "capFps": 119,
+          "codec": "H.264",
+          "e2e50": 16,
+          "e2e95": 25,
+          "enc50": 11,
+          "stalls": 0
+        }
+      ],
+      "median_received_fps": 119
+    }
+  ]
+}
