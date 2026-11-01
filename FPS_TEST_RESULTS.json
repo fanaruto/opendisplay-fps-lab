@@ -207,5 +207,30 @@
       ],
       "median_received_fps": 119
     }
-  ]
+  ],
+  "native_quality_run": {
+    "target_fps": 120,
+    "encoded_size": [
+      1668,
+      2388
+    ],
+    "target_bitrate_mbps": 36,
+    "pending_encodes": 6,
+    "hardware_encoder": "com.apple.videotoolbox.videoencoder.ave.avc",
+    "received_fps_samples": [
+      110,
+      110,
+      110,
+      112,
+      110
+    ],
+    "reported_latency_p50_ms": [
+      52,
+      54,
+      53,
+      53,
+      54
+    ],
+    "notes": "receiver statistics; not on-glass measurements"
+  }
 }
