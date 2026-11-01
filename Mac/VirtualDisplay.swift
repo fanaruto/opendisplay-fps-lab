@@ -79,13 +79,13 @@ final class VirtualDisplay {
         settings = CGVirtualDisplaySettings()
         settings.hiDPI = self.scale == 2 ? 1 : 0
         settings.modes = [
-            CGVirtualDisplayMode(width: UInt(pointsWide), height: UInt(pointsHigh), refreshRate: 60)
+            CGVirtualDisplayMode(width: UInt(pointsWide), height: UInt(pointsHigh), refreshRate: Double(VideoStreamConfiguration.defaultFramesPerSecond))
         ]
         guard display.apply(settings) else {
             Log.info("CGVirtualDisplay applySettings FAILED")
             return nil
         }
-        Log.info("virtual display created: id=\(display.displayID) \(pointsWide)x\(pointsHigh)pt @\(self.scale)x")
+        Log.info("virtual display created: id=\(display.displayID) \(pointsWide)x\(pointsHigh)pt @\(self.scale)x requested \(VideoStreamConfiguration.defaultFramesPerSecond)Hz")
 
         // macOS defaults the new display to its 1x mode AND can restore a
         // stale saved mode for this serial asynchronously, seconds after the
@@ -136,7 +136,7 @@ final class VirtualDisplay {
         let newSettings = CGVirtualDisplaySettings()
         newSettings.hiDPI = scale == 2 ? 1 : 0
         newSettings.modes = [
-            CGVirtualDisplayMode(width: UInt(pointsWide), height: UInt(pointsHigh), refreshRate: 60)
+            CGVirtualDisplayMode(width: UInt(pointsWide), height: UInt(pointsHigh), refreshRate: Double(VideoStreamConfiguration.defaultFramesPerSecond))
         ]
         // The enforcement tick must not run between the new mode and its
         // placement: it would re-apply the old origin target, or report

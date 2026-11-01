@@ -25,7 +25,7 @@ struct CheckForUpdatesView: View {
     }
 
     var body: some View {
-        Button("Check for Updates…") { updater.checkForUpdates() }
+        Button("检查更新…") { updater.checkForUpdates() }
             .controlSize(.small)
             .disabled(!viewModel.canCheckForUpdates)
     }

@@ -25,17 +25,17 @@ enum StreamQuality: String, CaseIterable {
 
     var label: String {
         switch self {
-        case .best: return "Best"
-        case .balanced: return "Balanced"
-        case .fast: return "Fast"
+        case .best: return "最佳"
+        case .balanced: return "均衡"
+        case .fast: return "快速"
         }
     }
 
     var explanation: String {
         switch self {
-        case .best: return "Highest safe detail for this sender and display."
-        case .balanced: return "Lower capture resolution for less latency and bandwidth."
-        case .fast: return "Lowest latency and bandwidth, with a softer image. Good for WiFi."
+        case .best: return "以当前设备支持的最高画质显示。"
+        case .balanced: return "降低分辨率，减少延迟和带宽占用。"
+        case .fast: return "延迟和带宽占用最低，画面较柔和，适合 Wi-Fi。"
         }
     }
 }
@@ -51,7 +51,10 @@ struct PixelSize: Equatable {
 struct VideoStreamConfiguration: Equatable {
     static let h264Codec = "h264"
     static let hevcCodec = "hevc"
-    static let defaultFramesPerSecond = 60
+    static var defaultFramesPerSecond: Int {
+        let fps = UserDefaults.standard.integer(forKey: "experimentFPS")
+        return [60, 90, 120].contains(fps) ? fps : 60
+    }
     // H.264 High@L5.2 MaxFS and MaxMBPS. Keeping these as codec constraints,
     // rather than a model/display special case, is what makes 5K and future
     // receiver sizes follow the same selection path.
@@ -159,7 +162,11 @@ struct VideoStreamConfiguration: Equatable {
 
             var fps = targetFPS
             if let maximum = capability?.maxFrameRate, maximum > 0 {
-                fps = min(fps, maximum)
+                // Opt-in experiment: iPad reports HEVC 60 fps as a conservative
+                // capability. Exceed it only in this isolated lab build.
+                if codec != hevcCodec || requestedFramesPerSecond <= 60 {
+                    fps = min(fps, maximum)
+                }
             }
             if let pixelsPerSecond = capability?.maxPixelsPerSecond,
                pixelsPerSecond > 0 {

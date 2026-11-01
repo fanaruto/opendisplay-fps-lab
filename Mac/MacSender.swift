@@ -1317,7 +1317,7 @@ final class MacSender: NSObject, SCStreamOutput, SCStreamDelegate {
         // Ask for 120 even though the virtual display is 60Hz: requesting
         // exactly 1/60 makes SCK's rate limiter skip frames that arrive a
         // hair early (beat frequency) — measured ~51fps instead of 60.
-        config.minimumFrameInterval = CMTime(value: 1, timescale: 120)
+        config.minimumFrameInterval = CMTime(value: 1, timescale: CMTimeScale(max(120, selected.framesPerSecond * 2)))
         // 420v matches the encoder's native input — skips a BGRA→YUV conversion
         // inside VideoToolbox. (`-pixfmt bgra` reverts for A/B testing.)
         config.pixelFormat = UserDefaults.standard.string(forKey: "pixfmt") == "bgra"

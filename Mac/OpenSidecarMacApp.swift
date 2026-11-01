@@ -10,9 +10,9 @@ enum AppPresentation: String, CaseIterable {
 
     var label: String {
         switch self {
-        case .menuBar: return "Menu bar"
+        case .menuBar: return "菜单栏"
         case .dock: return "Dock"
-        case .background: return "Background only"
+        case .background: return "仅后台运行"
         }
     }
 }
@@ -43,7 +43,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // app's lifetime here so every window (menu bar + control window) shares
     // one updater instance.
     let updater = SPUStandardUpdaterController(
-        startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+        startingUpdater: false, updaterDelegate: nil, userDriverDelegate: nil)
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Hand the updater to the control window, which is built outside the
@@ -79,7 +79,7 @@ enum MainWindow {
                 contentRect: NSRect(x: 0, y: 0, width: 440, height: 540),
                 styleMask: [.titled, .closable, .miniaturizable],
                 backing: .buffered, defer: false)
-            w.title = "OpenDisplay"
+            w.title = "OpenDisplay 帧率实验版"
             w.contentView = NSHostingView(
                 rootView: ContentView(controller: SenderController.shared,
                                       updater: updater))
@@ -119,7 +119,7 @@ final class DeviceSession: ObservableObject, Identifiable {
     let name: String
     let sender: MacSender
 
-    @Published var status = "Starting…"
+    @Published var status = "正在启动…"
     @Published var framesSent = 0
     // The sender's start() threw: the pipeline is freed, only this row's
     // error text remains. A failed session must never swallow a fresh
@@ -225,6 +225,10 @@ final class SenderController: ObservableObject {
     @Published var mode = CaptureMode(rawValue: UserDefaults.standard.string(forKey: "mode") ?? "") ?? .extend
     @Published var quality = StreamQuality(rawValue: UserDefaults.standard.string(forKey: "quality") ?? "") ?? .best {
         didSet { UserDefaults.standard.set(quality.rawValue, forKey: "quality") }
+    }
+
+    @Published var experimentFPS: Int = VideoStreamConfiguration.defaultFramesPerSecond {
+        didSet { UserDefaults.standard.set(experimentFPS, forKey: "experimentFPS") }
     }
 
     var running: Bool { !sessions.isEmpty }
@@ -971,13 +975,13 @@ struct ContentView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("OpenDisplay")
                         .font(.title3.bold())
-                    Text("Your iPads, iPhones and Macs as extra displays")
+                    Text("将 iPad、iPhone 和 Mac 用作扩展显示器")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
                 if controller.running {
-                    Button("Disconnect All") { controller.disconnectAll() }
+                    Button("断开全部连接") { controller.disconnectAll() }
                         .controlSize(.large)
                 }
             }
@@ -987,9 +991,9 @@ struct ContentView: View {
 
             // Settings
             Form {
-                Section("Devices") {
+                Section("设备") {
                     if controller.deviceEntries.isEmpty {
-                        Text("No devices found — plug one in via USB, or open the OpenDisplay app on a device on this WiFi network.")
+                        Text("未发现设备。请通过 USB 连接，或在同一 Wi-Fi 网络的设备上打开 OpenDisplay。")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -1013,7 +1017,7 @@ struct ContentView: View {
                                 }
                                 Spacer()
                                 if let target = entry.preferredTarget {
-                                    Button("Connect") {
+                                    Button("连接") {
                                         controller.connect(to: target, userInitiated: true)
                                     }
                                     .controlSize(.small)
@@ -1023,15 +1027,25 @@ struct ContentView: View {
                     }
                 }
 
-                Picker("Mode", selection: $controller.mode) {
-                    Text("Extend").tag(CaptureMode.extend)
-                    Text("Mirror").tag(CaptureMode.mirror)
+                Picker("显示模式", selection: $controller.mode) {
+                    Text("扩展").tag(CaptureMode.extend)
+                    Text("镜像").tag(CaptureMode.mirror)
                 }
                 .pickerStyle(.segmented)
                 .onChange(of: controller.mode) { controller.restartAll() }
 
+                Picker("帧率（实验）", selection: $controller.experimentFPS) {
+                    Text("60 帧").tag(60)
+                    Text("90 帧").tag(90)
+                    Text("120 帧").tag(120)
+                }
+                .pickerStyle(.segmented)
+                .onChange(of: controller.experimentFPS) { controller.restartAll() }
+                Text("90 / 120 帧为实验功能，效果取决于设备与接收端。")
+                    .font(.caption).foregroundStyle(.secondary)
+
                 VStack(alignment: .leading, spacing: 4) {
-                    Picker("Quality", selection: $controller.quality) {
+                    Picker("画质", selection: $controller.quality) {
                         ForEach(StreamQuality.allCases, id: \.self) { q in
                             Text(q.label).tag(q)
                         }
@@ -1043,50 +1057,50 @@ struct ContentView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Picker("Show app in", selection: $controller.presentation) {
+                    Picker("应用显示位置", selection: $controller.presentation) {
                         ForEach(AppPresentation.allCases, id: \.self) { p in
                             Text(p.label).tag(p)
                         }
                     }
                     if controller.presentation == .background {
-                        Text("No menu bar or Dock icon — streaming keeps running. Open the OpenDisplay app again (Spotlight/Finder) to show this window.")
+                        Text("不显示菜单栏或程序坞图标，连接会继续运行。再次打开 OpenDisplay 可显示此窗口。")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                 }
 
-                LabeledContent("Display layout") {
-                    Button("Arrange Displays…") {
+                LabeledContent("显示器布局") {
+                    Button("排列显示器…") {
                         if let url = URL(string: "x-apple.systempreferences:com.apple.Displays-Settings.extension") {
                             NSWorkspace.shared.open(url)
                         }
                     }
                     .controlSize(.small)
                 }
-                .help("Opens System Settings → Displays, where you can position the extended displays relative to your Mac screen (Arrange…). Each device shows up as its own display, named after the device.")
+                .help("打开系统设置中的显示器设置，调整扩展屏幕的位置。")
 
-                Section("Permissions") {
+                Section("权限") {
                     permissionRow(
-                        "Screen Recording",
+                        "屏幕录制",
                         granted: permissions.screenRecording,
-                        help: "Required to capture the display.",
+                        help: "用于捕捉显示器画面。",
                         anchor: "Privacy_ScreenCapture",
                         request: { permissions.requestScreenRecording() }
                     )
                     permissionRow(
-                        "Accessibility",
+                        "辅助功能",
                         granted: permissions.accessibility,
-                        help: "Required for touch input from the device.",
+                        help: "用于接收设备上的触摸操作。",
                         anchor: "Privacy_Accessibility",
                         request: { permissions.requestAccessibility() }
                     )
                     // macOS offers no API to query Local Network access, so
                     // infer from discovery results and let the user check.
                     permissionRow(
-                        "Local Network",
+                        "本地网络",
                         granted: !controller.discovered.isEmpty,
                         uncertain: controller.discovered.isEmpty,
-                        help: "Required for WiFi mode. If no device appears in the Devices list, allow OpenDisplay under Privacy & Security → Local Network on this Mac AND on the device — and keep the OpenDisplay app open there.",
+                        help: "无线连接需要此权限。如未发现设备，请在 Mac 和接收设备的隐私设置中允许本地网络访问，并保持接收端应用打开。",
                         anchor: "Privacy_LocalNetwork"
                     )
                 }
@@ -1104,21 +1118,19 @@ struct ContentView: View {
                     .fill(controller.running ? .green : .secondary.opacity(0.5))
                     .frame(width: 9, height: 9)
                 Text(controller.running
-                     ? "\(controller.sessions.count) device\(controller.sessions.count == 1 ? "" : "s") connected"
-                     : "Idle")
+                     ? "已连接 \(controller.sessions.count) 台设备"
+                     : "空闲")
                     .font(.callout)
                     .lineLimit(1)
                 Spacer()
                 // Support affordance: bug reports are much easier to act on
                 // with the log attached, and users shouldn't have to be told a
                 // filesystem path to find it.
-                Button("Logs") { Log.revealInFinder() }
+                Button("日志") { Log.revealInFinder() }
                     .controlSize(.small)
-                    .help("Reveal the OpenDisplay log files in Finder")
-                if let updater {
-                    CheckForUpdatesView(updater: updater)
-                }
-                Button("Quit") { NSApp.terminate(nil) }
+                    .help("在 Finder 中显示日志文件")
+
+                Button("退出") { NSApp.terminate(nil) }
                     .controlSize(.small)
             }
             .padding(.horizontal, 16)
@@ -1146,11 +1158,11 @@ struct ContentView: View {
             Spacer()
             if uncertain || !granted {
                 if let request {
-                    Button("Grant…") { request() }
+                    Button("授权…") { request() }
                         .controlSize(.small)
                         .help("Ask macOS for this permission. If the system dialog was already dismissed once, this registers the app under \(title) in System Settings — flip the toggle there.")
                 }
-                Button("Open Settings") {
+                Button("打开设置") {
                     PermissionMonitor.openPrivacyPane(anchor)
                 }
                 .controlSize(.small)
@@ -1195,9 +1207,9 @@ struct SessionRow: View {
             // A live session recovers on its own (liveness watchdog, redial,
             // transport failover), so only a failed start gets a button.
             if session.failed {
-                Button("Retry") { controller.retry(session) }
+                Button("重试") { controller.retry(session) }
                     .controlSize(.small)
-                    .help("Start this connection over")
+                    .help("重新连接")
             }
             if session.powerActions.contains(.shutdown) {
                 Button {
@@ -1208,9 +1220,9 @@ struct SessionRow: View {
                 .controlSize(.small)
                 .help("Shut down \(title)")
                 .confirmationDialog("Shut down \(title) now?", isPresented: $confirmingShutdown) {
-                    Button("Shut Down", role: .destructive) { session.sender.requestPower(.shutdown) }
+                    Button("关机", role: .destructive) { session.sender.requestPower(.shutdown) }
                 } message: {
-                    Text("Apps on it with unsaved changes can still stop the shutdown.")
+                    Text("设备上的应用可能因未保存的更改阻止关机。")
                 }
             }
             if !session.displaySizeOutcomes.isEmpty {
@@ -1225,7 +1237,7 @@ struct SessionRow: View {
                     DisplaySizePicker(session: session)
                 }
             }
-            Button("Disconnect") { controller.disconnect(session) }
+            Button("断开连接") { controller.disconnect(session) }
                 .controlSize(.small)
         }
     }
@@ -1239,8 +1251,8 @@ struct DisplaySizePicker: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Display size").font(.headline)
-            Picker("Display size", selection: Binding(
+            Text("显示尺寸").font(.headline)
+            Picker("显示尺寸", selection: Binding(
                 get: { session.displaySize },
                 set: { session.setDisplaySize($0) })) {
                 ForEach(session.displaySizeOutcomes, id: \.choice) { outcome in
@@ -1265,7 +1277,7 @@ struct DisplaySizePicker: View {
     private func caption(for outcome: DisplaySizeOutcome) -> String {
         let sameAsDefault = outcome.choice != .default
             && outcome.desktop == session.displaySizeOutcomes.first(where: { $0.choice == .default })?.desktop
-        return outcome.caption + (sameAsDefault ? " (same as Default)" : "")
+        return outcome.caption + (sameAsDefault ? "（与默认相同）" : "")
     }
 }
 
