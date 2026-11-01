@@ -100,20 +100,16 @@ final class MacSender: NSObject, SCStreamOutput, SCStreamDelegate {
     // before the previous encode callback fires, VideoToolbox will run multiple
     // encodes in parallel inside the same session.
     //
-    // Capping pendingEncodes at 1 enforces "latest frame wins" on the encoder:
-    // skip captures while an encode is in flight (enc drops), then feed the next
-    // fresh buffer when the callback clears the slot. The reference chain stays
-    // valid (pre-encode skip → normal P-frame n→n+2); we do NOT force keyframes
-    // on enc drops. Same for both codecs: measured on an M5 Pro, a second slot
-    // buys frames only below 5K and roughly doubles p95 latency, at 5K it buys
-    // none (research/hevc-m5-2026-09-29).
+    // Keep at most three frames in flight. A single slot serialized capture
+    // behind a ~15 ms encode callback and prevented 90/120 fps even when the
+    // hardware had spare throughput. This bounded pipeline keeps latency finite.
     private var pendingEncodes = 0
     private var maxPendingEncodes: Int {
         #if DEBUG
         let override = UserDefaults.standard.integer(forKey: "maxPendingEncodes")
         if override > 0 { return override }   // A/B knob: -maxPendingEncodes N
         #endif
-        return 1
+        return 3
     }
 
     // ── Outstanding send backpressure (maxPendingSends = 3) ──────────────────
@@ -574,6 +570,11 @@ final class MacSender: NSObject, SCStreamOutput, SCStreamDelegate {
     /// that cannot encode it gets an H.264-sized desktop from the start. A
     /// failed HEVC encoder later switches this session to H.264.
     private func preferredCodec(for info: PhoneInfo, source: PixelSize) -> String {
+        if (UserDefaults.standard.string(forKey: "experimentCodec") == "h264"
+            || VideoStreamConfiguration.defaultFramesPerSecond > 60),
+           info.videoCaps?.contains(where: { $0.codec.lowercased() == "h264" }) == true {
+            return VideoStreamConfiguration.h264Codec
+        }
         let codec = VideoStreamConfiguration.preferredCodec(
             receiverCapabilities: info.videoCaps,
             senderEncodesHEVC: Self.hardwareHEVCEncoder && !hevcEncoderFailed)
@@ -2697,7 +2698,8 @@ final class MacSender: NSObject, SCStreamOutput, SCStreamDelegate {
         // Low-latency rate control: the hardware encoder emits every frame
         // immediately instead of pipelining. (`-lowlatency NO` for A/B.)
         let lowLatency = UserDefaults.standard.object(forKey: "lowlatency") == nil
-            || UserDefaults.standard.bool(forKey: "lowlatency")
+            ? !(configuration.codec == VideoStreamConfiguration.h264Codec && configuration.framesPerSecond > 60)
+            : UserDefaults.standard.bool(forKey: "lowlatency")
         // The spec filters which encoder VideoToolbox is allowed to pick, so an
         // unsupported key fails creation outright rather than being ignored the
         // way the properties below are: this key *requires* an encoder that
@@ -3278,9 +3280,14 @@ final class MacSender: NSObject, SCStreamOutput, SCStreamDelegate {
         var frame = Data(bytes: &header, count: 4)
         frame.append(payload)
         pendingSends += 1
+        let generation = connectionGeneration
         connection.send(content: frame, completion: .contentProcessed { [weak self] error in
             guard let self else { return }
-            self.pendingSends -= 1
+            self.queue.async {
+            // A retired socket must not decrement the replacement connection's
+            // reset counter or pollute its throughput statistics.
+            guard generation == self.connectionGeneration else { return }
+            self.pendingSends = max(0, self.pendingSends - 1)
             if let error {
                 Log.info("send error: \(error)")
                 return
@@ -3295,6 +3302,7 @@ final class MacSender: NSObject, SCStreamOutput, SCStreamDelegate {
                 self.bytesSent = 0
                 self.statsWindowStart = Date()
                 Task { @MainActor in self.onStats?(frames, mbps) }
+            }
             }
         })
     }

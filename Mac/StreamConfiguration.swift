@@ -162,9 +162,9 @@ struct VideoStreamConfiguration: Equatable {
 
             var fps = targetFPS
             if let maximum = capability?.maxFrameRate, maximum > 0 {
-                // Opt-in experiment: iPad reports HEVC 60 fps as a conservative
-                // capability. Exceed it only in this isolated lab build.
-                if codec != hevcCodec || requestedFramesPerSecond <= 60 {
+                // Opt-in experiment: exceed the advertised codec frame-rate cap
+                // only in this lab build; retain panel, raster and throughput limits.
+                if requestedFramesPerSecond <= 60 {
                     fps = min(fps, maximum)
                 }
             }

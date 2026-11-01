@@ -21,7 +21,26 @@ enum TestPattern {
                 }) {
                     let w = NSWindow(contentRect: screen.frame, styleMask: [.borderless],
                                      backing: .buffered, defer: false)
-                    w.contentView = NSHostingView(rootView: PatternView())
+                    // Core Animation drives motion in the compositor, independent of
+                    // SwiftUI TimelineView's main-thread scheduling.
+                    let view = NSView(frame: NSRect(origin: .zero, size: screen.frame.size))
+                    view.wantsLayer = true
+                    view.layer?.backgroundColor = NSColor.white.cgColor
+                    for i in 0..<5 {
+                        let bar = CALayer()
+                        bar.frame = CGRect(x: 20, y: 80 + i * 110, width: 100, height: 70)
+                        bar.backgroundColor = NSColor.systemBlue.cgColor
+                        bar.cornerRadius = 12
+                        view.layer?.addSublayer(bar)
+                        let motion = CABasicAnimation(keyPath: "transform.translation.x")
+                        motion.fromValue = 0
+                        motion.toValue = max(10, screen.frame.width - 140)
+                        motion.duration = 0.8 + Double(i) * 0.17
+                        motion.autoreverses = true
+                        motion.repeatCount = .infinity
+                        bar.add(motion, forKey: "benchmarkMotion")
+                    }
+                    w.contentView = view
                     w.setFrame(screen.frame, display: true)
                     w.orderFrontRegardless()
                     windows[displayID] = w
