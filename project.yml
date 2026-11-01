@@ -47,6 +47,8 @@ targets:
     sources:
       - Mac
       - Shared
+      - path: Resources/SendClipboardToMac.shortcut
+        buildPhase: resources
     dependencies:
       - package: Sparkle
     info:
@@ -162,6 +164,11 @@ targets:
       - Mac/Log.swift
       - Mac/LogPolicies.swift
       - Shared/Protocol.swift
+      - Shared/ClipboardTransfer.swift
+      - Mac/MacClipboardReceiver.swift
+      - Mac/ClipboardHTTPRequest.swift
+      - Mac/ClipboardPairingPage.swift
+      - Mac/MacClipboardBridge.swift
       - Shared/DirectCable.swift
       - Shared/LogSnapshot.swift
       - MacReceiver/FullscreenPreference.swift

@@ -1,0 +1,61 @@
+{
+  "feature": "manual-ipad-to-mac-clipboard-v1",
+  "date": "2026-11-01",
+  "scope": [
+    "text",
+    "links"
+  ],
+  "ipad_opendisplay_modified": false,
+  "transport": "authenticated local-network HTTP; USB video unchanged",
+  "unit_tests": {
+    "total": 53,
+    "passed": 53,
+    "failed": 0,
+    "new_clipboard": 12,
+    "existing_stream_configuration": 41
+  },
+  "native_shortcut_test": {
+    "passed": true,
+    "pasteboard": "isolated named pasteboard",
+    "exact_unicode_multiline_text_and_url_match": true,
+    "test_read_daily_clipboard": false
+  },
+  "pairing_page": {
+    "viewports": [
+      [
+        834,
+        1194
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "narrow_horizontal_overflow": false,
+    "download_filename": "发送剪贴板到 Mac.shortcut",
+    "download_matches_bundled_template": true,
+    "template_sha256": "3324ec1318fbad55fb258e382195baf04746e96f2d1219c3d18792805b110ee3"
+  },
+  "installed_mac": {
+    "installed": true,
+    "bundle_identifier": "com.peetzweg.opensidecar.mac.debug",
+    "designated_requirement_preserved": true,
+    "deep_signature_verification_passed": true,
+    "old_app_backed_up": true,
+    "sender_process_count": 1,
+    "screen_recording_grant_reused": true,
+    "accessibility_grant_reused": true,
+    "quality": "native",
+    "target_fps": 120,
+    "fps_remeasured": false,
+    "private_setup_and_download_endpoints_status": 200
+  },
+  "ipad_acceptance": {
+    "text": "user confirmed successful paste",
+    "user_reply": "已成功粘贴",
+    "standalone_url": "Mac tests passed; no separate iPad URL acceptance reported"
+  },
+  "environment": {
+    "macos": "27.2"
+  }
+}
