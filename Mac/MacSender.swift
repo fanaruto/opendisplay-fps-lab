@@ -100,16 +100,17 @@ final class MacSender: NSObject, SCStreamOutput, SCStreamDelegate {
     // before the previous encode callback fires, VideoToolbox will run multiple
     // encodes in parallel inside the same session.
     //
-    // Keep at most three frames in flight. A single slot serialized capture
-    // behind a ~15 ms encode callback and prevented 90/120 fps even when the
-    // hardware had spare throughput. This bounded pipeline keeps latency finite.
+    // Native high-rate encoding needs six in-flight frames on the tested M1 Pro.
+    // Eight added latency without throughput. Smaller streams keep three slots.
+    // The bounded pipeline avoids serializing capture behind every callback.
     private var pendingEncodes = 0
     private var maxPendingEncodes: Int {
         #if DEBUG
         let override = UserDefaults.standard.integer(forKey: "maxPendingEncodes")
         if override > 0 { return override }   // A/B knob: -maxPendingEncodes N
         #endif
-        return 3
+        let nativeHighRate = quality == .best && VideoStreamConfiguration.defaultFramesPerSecond > 60
+        return nativeHighRate ? 6 : 3
     }
 
     // ── Outstanding send backpressure (maxPendingSends = 3) ──────────────────
@@ -2668,7 +2669,7 @@ final class MacSender: NSObject, SCStreamOutput, SCStreamDelegate {
         if lowLatency {
             spec[kVTVideoEncoderSpecification_EnableLowLatencyRateControl] = kCFBooleanTrue
         }
-        if codec == VideoStreamConfiguration.hevcCodec {
+        if codec == VideoStreamConfiguration.hevcCodec || VideoStreamConfiguration.defaultFramesPerSecond > 60 {
             spec[kVTVideoEncoderSpecification_RequireHardwareAcceleratedVideoEncoder] = kCFBooleanTrue
         }
         return VTCompressionSessionCreate(
@@ -2760,6 +2761,13 @@ final class MacSender: NSObject, SCStreamOutput, SCStreamDelegate {
             throw NSError(domain: "MacSender", code: 4, userInfo: [
                 NSLocalizedDescriptionKey: "HEVC encoder could not prepare (status \(prepareStatus))"])
         }
+        var usingHardware: CFTypeRef?
+        var encoderID: CFTypeRef?
+        VTSessionCopyProperty(encoder, key: kVTCompressionPropertyKey_UsingHardwareAcceleratedVideoEncoder,
+                              allocator: nil, valueOut: &usingHardware)
+        VTSessionCopyProperty(encoder, key: kVTCompressionPropertyKey_EncoderID,
+                              allocator: nil, valueOut: &encoderID)
+        Log.info("encoder implementation: \(String(describing: encoderID)) hardware=\(String(describing: usingHardware))")
         pipelineLock.lock()
         consecutiveEncodeFailures = 0
         pipelineLock.unlock()

@@ -5,11 +5,12 @@ import Foundation
 /// scale the captured/encoded stream, so lower presets cut encode, transmit,
 /// and decode work at the cost of sharpness.
 enum StreamQuality: String, CaseIterable {
-    case best, balanced, fast
+    case best, high, balanced, fast
 
     var scale: Double {
         switch self {
         case .best: return 1.0
+        case .high: return 0.85
         case .balanced: return 0.75
         case .fast: return 0.5
         }
@@ -18,6 +19,7 @@ enum StreamQuality: String, CaseIterable {
     var bitrate: Int {
         switch self {
         case .best: return 18_000_000
+        case .high: return 36_000_000
         case .balanced: return 10_000_000
         case .fast: return 6_000_000
         }
@@ -25,16 +27,18 @@ enum StreamQuality: String, CaseIterable {
 
     var label: String {
         switch self {
-        case .best: return "最佳"
-        case .balanced: return "均衡"
+        case .best: return "原生清晰"
+        case .high: return "高清"
+        case .balanced: return "清晰流畅"
         case .fast: return "快速"
         }
     }
 
     var explanation: String {
         switch self {
-        case .best: return "以当前设备支持的最高画质显示。"
-        case .balanced: return "降低分辨率，减少延迟和带宽占用。"
+        case .best: return "使用原生分辨率。高帧率效果取决于设备性能。"
+        case .high: return "保留 85% 宽高分辨率，提高码率，兼顾清晰度与流畅度。"
+        case .balanced: return "保留 75% 宽高分辨率，比快速档显示更多细节。"
         case .fast: return "延迟和带宽占用最低，画面较柔和，适合 Wi-Fi。"
         }
     }
@@ -178,7 +182,8 @@ struct VideoStreamConfiguration: Equatable {
                 fps = safeH264FrameRate(width: size.width, height: size.height,
                                         requested: fps)
             }
-            return Self(codec: codec, encodedSize: size, bitrate: quality.bitrate,
+            let bitrate = quality == .best && fps > 60 ? 36_000_000 : quality.bitrate
+            return Self(codec: codec, encodedSize: size, bitrate: bitrate,
                         framesPerSecond: fps)
         }
 
