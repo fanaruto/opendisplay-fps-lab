@@ -197,6 +197,7 @@ final class DeviceSession: ObservableObject, Identifiable {
 @MainActor
 final class SenderController: ObservableObject {
     static let shared = SenderController()
+    let clipboardBridge = MacClipboardBridge()
 
     @Published var presentation = AppPresentation(
         rawValue: UserDefaults.standard.string(forKey: "presentation") ?? "") ?? .menuBar {
@@ -300,6 +301,7 @@ final class SenderController: ObservableObject {
 
     init() {
         SenderInstanceGuard.enforce()
+        clipboardBridge.restoreEnabledState()
         startBrowsing()
         usbWatcher = UsbmuxDeviceWatcher { [weak self] devices in
             self?.usbmuxDevices = devices
@@ -1079,6 +1081,8 @@ struct ContentView: View {
                     .controlSize(.small)
                 }
                 .help("打开系统设置中的显示器设置，调整扩展屏幕的位置。")
+
+                ClipboardSettingsView(bridge: controller.clipboardBridge)
 
                 Section("权限") {
                     permissionRow(
