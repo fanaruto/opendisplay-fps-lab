@@ -71,7 +71,7 @@ targets:
         # verifies update signatures against this public key before installing.
         SUPublicEDKey: rYxlIePmwzi2bRo/qIsuY2TqTnQ34li2gQhJpGBiumw=
         # Check for updates automatically in the background on a schedule.
-        SUEnableAutomaticChecks: true
+        SUEnableAutomaticChecks: false
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.peetzweg.opensidecar.mac
@@ -91,8 +91,8 @@ targets:
         # own row instead of a second, indistinguishable "OpenDisplay".
         Debug:
           PRODUCT_BUNDLE_IDENTIFIER: com.peetzweg.opensidecar.mac.debug
-          PRODUCT_NAME: OpenDisplay Dev
-          BUNDLE_DISPLAY_NAME: OpenDisplay Dev
+          PRODUCT_NAME: OpenDisplay FPS Lab
+          BUNDLE_DISPLAY_NAME: OpenDisplay FPS Lab
           # Colour-inverted icon so the dev build is obvious in the Dock,
           # cmd-tab and permission lists.
           ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon-Dev
