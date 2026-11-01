@@ -419,4 +419,19 @@ final class StreamConfigurationTests: XCTestCase {
         XCTAssertEqual(capability.maxWidth, 4096)
         XCTAssertNil(capability.maxHeight)
     }
+    func testExperimentalRatesRespectDisplayLimit() throws {
+        for requested in [60, 90, 120] {
+            let stream = try VideoStreamConfiguration.make(
+                source: PixelSize(width: 1668, height: 2388), quality: .best,
+                codec: "hevc", receiverCapabilities: [VideoCapability(codec: "hevc", maxFrameRate: 60)],
+                displayMaxFrameRate: 120, requestedFramesPerSecond: requested)
+            XCTAssertEqual(stream.framesPerSecond, requested)
+        }
+        let limited = try VideoStreamConfiguration.make(
+            source: PixelSize(width: 1668, height: 2388), quality: .best,
+            codec: "hevc", receiverCapabilities: [VideoCapability(codec: "hevc", maxFrameRate: 60)],
+            displayMaxFrameRate: 60, requestedFramesPerSecond: 120)
+        XCTAssertEqual(limited.framesPerSecond, 60)
+    }
+
 }
