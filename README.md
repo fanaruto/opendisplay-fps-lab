@@ -1,3 +1,5 @@
+> **OpenDisplay FPS Lab（非官方实验分支）**：Mac 中文界面及 iPad 高帧率实验。请先阅读 [中文说明](README.zh-CN.md) 与 [开发日志](DEVELOPMENT_LOG.md)。本项目基于 [OpenDisplay](https://github.com/peetzweg/opendisplay)，沿用 GPL-3.0。
+
 > [!NOTE]
 > **🌴 Away until November 17**
 >
