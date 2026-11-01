@@ -427,6 +427,12 @@ final class StreamConfigurationTests: XCTestCase {
                 displayMaxFrameRate: 120, requestedFramesPerSecond: requested)
             XCTAssertEqual(stream.framesPerSecond, requested)
         }
+        let h264 = try VideoStreamConfiguration.make(
+            source: PixelSize(width: 1668, height: 2388), quality: .fast,
+            codec: "h264", receiverCapabilities: [VideoCapability(codec: "h264", maxFrameRate: 60)],
+            displayMaxFrameRate: 120, requestedFramesPerSecond: 120)
+        XCTAssertEqual(h264.framesPerSecond, 120)
+        XCTAssertEqual(h264.encodedSize, PixelSize(width: 834, height: 1194))
         let limited = try VideoStreamConfiguration.make(
             source: PixelSize(width: 1668, height: 2388), quality: .best,
             codec: "hevc", receiverCapabilities: [VideoCapability(codec: "hevc", maxFrameRate: 60)],
