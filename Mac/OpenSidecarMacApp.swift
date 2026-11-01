@@ -299,6 +299,7 @@ final class SenderController: ObservableObject {
     private var everOnCable: Set<String> = []
 
     init() {
+        SenderInstanceGuard.enforce()
         startBrowsing()
         usbWatcher = UsbmuxDeviceWatcher { [weak self] devices in
             self?.usbmuxDevices = devices
