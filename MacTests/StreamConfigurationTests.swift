@@ -440,4 +440,19 @@ final class StreamConfigurationTests: XCTestCase {
         XCTAssertEqual(limited.framesPerSecond, 60)
     }
 
+    func testNativeHighRateAndHighDetailPresets() throws {
+        let caps = [VideoCapability(codec: "h264", maxFrameRate: 60)]
+        let native = try VideoStreamConfiguration.make(
+            source: PixelSize(width: 1668, height: 2388), quality: .best,
+            codec: "h264", receiverCapabilities: caps, displayMaxFrameRate: 120,
+            requestedFramesPerSecond: 120)
+        XCTAssertEqual(native.encodedSize, PixelSize(width: 1668, height: 2388))
+        XCTAssertEqual(native.bitrate, 36_000_000)
+        let high = try VideoStreamConfiguration.make(
+            source: PixelSize(width: 1668, height: 2388), quality: .high,
+            codec: "h264", receiverCapabilities: caps, displayMaxFrameRate: 120,
+            requestedFramesPerSecond: 120)
+        XCTAssertEqual(high.encodedSize, PixelSize(width: 1416, height: 2028))
+    }
+
 }
